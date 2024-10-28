@@ -4,9 +4,9 @@ on:
   workflow_dispatch:
   push:
     branches: [llvm-17.0.6rel]
- 
+
 jobs:
-  build:
+  build_x86_64:
     runs-on: ubuntu-latest
     env:
       GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -16,11 +16,19 @@ jobs:
         with:
           ref: "llvm-17.0.6rel"
           submodules: "recursive"
- 
+
+      - name: Cache CMake and Ninja
+        uses: actions/cache@v3
+        with:
+          path: |
+            /usr/local/bin/cmake
+            /usr/local/bin/ninja
+          key: ${{ runner.os }}-cmake-ninja
+
       - name: Setup dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build gcc g++ gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+          sudo apt-get install -y cmake ninja-build gcc g++
 
       - name: Setup Python
         uses: actions/setup-python@v5
@@ -41,12 +49,47 @@ jobs:
                 -DLLVM_INCLUDE_UTILS=OFF \
                 -DLLVM_INCLUDE_BENCHMARKS=OFF \
                 -DLLVM_BUILD_TOOLS=OFF ../llvm
-          ninja
+          ninja -j16
 
       - name: Package x86_64 Artifact
         run: |
           cd build-x86_64/bin
           tar -czvf Hikari_LLVM17.0.6_Linux-x86_64.tar.gz clang clang++
+
+      - name: Upload x86_64 Artifact
+        uses: actions/upload-artifact@v4.3.3
+        with:
+          name: Hikari_LLVM17.0.6_Linux-x86_64
+          path: build-x86_64/bin/Hikari_LLVM17.0.6_Linux-x86_64.tar.gz
+
+  build_aarch64:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_ACCESS_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.6
+        with:
+          ref: "llvm-17.0.6rel"
+          submodules: "recursive"
+
+      - name: Cache CMake and Ninja
+        uses: actions/cache@v3
+        with:
+          path: |
+            /usr/local/bin/cmake
+            /usr/local/bin/ninja
+          key: ${{ runner.os }}-cmake-ninja
+
+      - name: Setup dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build gcc-aarch64-linux-gnu g++-aarch64-linux-gnu
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
       - name: Build for linux-aarch64
         run: |
@@ -63,18 +106,15 @@ jobs:
                 -DLLVM_INCLUDE_UTILS=OFF \
                 -DLLVM_INCLUDE_BENCHMARKS=OFF \
                 -DLLVM_BUILD_TOOLS=OFF ../llvm
-          ninja
+          ninja -j16
 
       - name: Package aarch64 Artifact
         run: |
           cd build-aarch64/bin
           tar -czvf Hikari_LLVM17.0.6_Linux-aarch64.tar.gz clang clang++
 
-      - name: Upload Artifacts
-        if: failure() || success()
+      - name: Upload aarch64 Artifact
         uses: actions/upload-artifact@v4.3.3
         with:
-          name: Hikari_LLVM17.0.6_Linux
-          paths: |
-            build-x86_64/bin/Hikari_LLVM17.0.6_Linux-x86_64.tar.gz
-            build-aarch64/bin/Hikari_LLVM17.0.6_Linux-aarch64.tar.gz
+          name: Hikari_LLVM17.0.6_Linux-aarch64
+          path: build-aarch64/bin/Hikari_LLVM17.0.6_Linux-aarch64.tar.gz

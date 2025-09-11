@@ -53,14 +53,13 @@ jobs:
 
       - name: Package x86_64 Artifact
         run: |
-          cd build-x86_64/bin
-          tar -czvf Hikari_LLVM17.0.6_Linux-x86_64.tar.gz clang clang++
-
+         tar -czvf Hikari_LLVM17.0.6_Linux-x86_64.tar.gz -C build-x86_64 .
+         
       - name: Upload x86_64 Artifact
         uses: actions/upload-artifact@v4.3.3
         with:
           name: Hikari_LLVM17.0.6_Linux-x86_64
-          path: build-x86_64/bin/Hikari_LLVM17.0.6_Linux-x86_64.tar.gz
+          path: Hikari_LLVM17.0.6_Linux-x86_64.tar.gz
 
   build_aarch64:
     runs-on: ubuntu-latest
@@ -110,11 +109,10 @@ jobs:
 
       - name: Package aarch64 Artifact
         run: |
-          cd build-aarch64/bin
-          tar -czvf Hikari_LLVM17.0.6_Linux-aarch64.tar.gz clang clang++
+          tar -czvf Hikari_LLVM17.0.6_Linux-aarch64.tar.gz -C build-aarch64 .
 
       - name: Upload aarch64 Artifact
         uses: actions/upload-artifact@v4.3.3
         with:
           name: Hikari_LLVM17.0.6_Linux-aarch64
-          path: build-aarch64/bin/Hikari_LLVM17.0.6_Linux-aarch64.tar.gz
+          path: Hikari_LLVM17.0.6_Linux-aarch64.tar.gz
